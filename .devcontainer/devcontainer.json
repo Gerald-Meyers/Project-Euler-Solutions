@@ -126,7 +126,13 @@
         "google.geminicodeassist",
 
         // Autopep8 for Python code formatting
-        "ms-python.autopep8"
+        "ms-python.autopep8",
+
+        // isort for Python import sorting
+        "ms-python.isort"
+
+        // Lean4 Theorem Prover as an optional import
+        // "leanprover.lean4"
       ]
     }
   },
