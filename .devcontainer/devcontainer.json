@@ -137,8 +137,10 @@
         // VSCode Containers Extension as an optional extension
         // "ms-azuretools.vscode-containers",
 
-          // Lean4 Theorem Prover as an optional extension
+        // Lean4 Theorem Prover as an optional extension
         // "leanprover.lean4",
+
+        
       ]
     }
   },
