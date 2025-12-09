@@ -137,7 +137,7 @@
         "ms-python.autopep8",
 
         // isort for Python import sorting
-        "ms-python.isort",
+        "ms-python.isort" //,
 
         // Black for Python code formatting as an optional extension
         // "ms-python.black-formatter",
