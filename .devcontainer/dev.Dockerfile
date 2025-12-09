@@ -26,7 +26,7 @@ COPY \
 COPY \
     .devcontainer/installation-utilities.sh \
         # ${SETUP_DIR}/installation-utilities.sh
-        /tmp/setup/installation-utilities.sh
+        ${SETUP_DIR}/installation-utilities.sh
 
 # Copy the requirements file
 COPY \
