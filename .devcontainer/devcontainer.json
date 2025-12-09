@@ -31,6 +31,14 @@
   //    localhost:<port> on your local machine.
   // Use Case: Access web applications, databases, TensorBoard, Jupyter, or other services running inside the container from your host's browser or tools.
   "forwardPorts" : [],
+
+  // features: Configures "Features" (pre-packaged installation scripts) to inject additional tools.
+  // Details: An object mapping Feature IDs to configuration options. Features allow you to quickly install 
+  //    common tools (like Git, Docker CLI, AWS CLI) without writing custom Dockerfile commands.
+  // Use Case: Essential for adding tools that are missing from the base image, such as ensuring 'git' is available.
+  "features": {
+    "ghcr.io/devcontainers/features/git:1": {}
+  },
   
   // portsAttributes: Provides additional configuration for forwarded ports.
   // Details: An object mapping port numbers (as strings) to settings like 'label', 'onAutoForward', 'protocol'. 

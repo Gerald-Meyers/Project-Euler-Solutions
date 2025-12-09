@@ -1,26 +1,26 @@
 # For monitoring system resources.
-htop \              
+htop
 
 # For downloading files.
-wget \              
+wget
 
 # For secure communications.
-ca-certificates \   
+ca-certificates
 
 # For privilege escalation.
-sudo \              
+sudo
 
 # For managing keys.
-curl \              
+curl
 
 # For version control and collaboration.
-git \               
+git
 
 # For extracting zip files.
-unzip \             
+unzip
 
 # For file editing.
-vim \
+vim
 
 # For encryption and signing.
-gnupg2 \
+gnupg2
