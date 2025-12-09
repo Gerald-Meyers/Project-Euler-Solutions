@@ -1,0 +1,26 @@
+# For monitoring system resources.
+htop
+
+# For downloading files.
+wget
+
+# For secure communications.
+ca-certificates
+
+# For privilege escalation.
+sudo
+
+# For managing keys.
+curl
+
+# For version control and collaboration.
+git
+
+# For extracting zip files.
+unzip
+
+# For file editing.
+vim
+
+# For encryption and signing.
+gnupg2

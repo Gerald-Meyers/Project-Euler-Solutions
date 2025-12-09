@@ -1,0 +1,160 @@
+{
+  // name: Sets the display name for the dev container.
+  // Details: This name appears in the VS Code UI when selecting or managing the container (e.g., in the Remote Explorer).
+  "name" : "Tensorflow Devcontainer",
+  
+  // dockerComposeFile: Specifies the Docker Compose file(s) used to define the dev container environment.
+  // Details: An array of paths (relative to devcontainer.json) to one or more docker-compose.yml files. VS Code will use 
+  //    Docker Compose to build and run the services defined within these files instead of using the 'build' or 'image' properties. 
+  //    Requires the 'service' property to also be defined.
+  // Use Case: Define multi-container development environments (e.g., application + database + cache) or manage complex 
+  //    single-service configurations using Docker Compose.
+  "dockerComposeFile" : [
+    "../.devcontainer/docker-compose.yml"
+  ],
+
+  // service: Specifies the target service within the Docker Compose setup for VS Code to attach to.
+  // Details: This value MUST match the name of a service defined in the docker-compose.yml file(s) listed in 'dockerComposeFile'. 
+  //    VS Code will connect its UI and terminal to this specific container.
+  // Use Case: Required when using 'dockerComposeFile' to identify the primary development container among potentially multiple 
+  //    services (like app, database, etc.).
+  "service": "app",
+  
+  // workspaceFolder: Specifies the default directory to open inside the container.
+  // Details: This path inside the container tells VS Code where your project files are located after attaching. 
+  //    It should match the 'target' path of your primary code mount (defined either in 'workspaceMount' or in the Docker Compose file's 'volumes').
+  // Use Case: Ensures VS Code opens the correct folder containing your project code within the container environment.
+  "workspaceFolder" : "/workspace",
+
+  // forwardPorts: Forwards ports from the container to the host machine.
+  // Details: An array of port numbers (e.g., [8000, 5432]) or ranges ("8000-8010"). Ports listed here become accessible via 
+  //    localhost:<port> on your local machine.
+  // Use Case: Access web applications, databases, TensorBoard, Jupyter, or other services running inside the container from your host's browser or tools.
+  "forwardPorts" : [],
+
+  // features: Configures "Features" (pre-packaged installation scripts) to inject additional tools.
+  // Details: An object mapping Feature IDs to configuration options. Features allow you to quickly install 
+  //    common tools (like Git, Docker CLI, AWS CLI) without writing custom Dockerfile commands.
+  // Use Case: Essential for adding tools that are missing from the base image, such as ensuring 'git' is available.
+  "features": {
+    "ghcr.io/devcontainers/features/git:1": {}
+  },
+  
+  // portsAttributes: Provides additional configuration for forwarded ports.
+  // Details: An object mapping port numbers (as strings) to settings like 'label', 'onAutoForward', 'protocol'. 
+  //    This is an optional, and may subset the ports listed in "forwardPorts".
+  // Use Case: Give descriptive names to forwarded ports in the UI, control auto-forwarding behavior.
+  "portsAttributes" : {
+    // Port 8000: Give it a label and have VS Code notify you when it forwards
+    // "8000": {
+    //   "label": "Web App",         // Name shown in VS Code's "Ports" tab
+    //   "onAutoForward": "notify"   // Options: notify, openBrowser, openPreview, silent
+    //   "protocol": "http"          // Options: http, https; defaults to http
+ 
+    // onAutoForward: Controls VS Code's action when a forwarded port becomes active.
+    // Details: Specifies the behavior when the Dev Containers extension detects activity on a port listed in 'forwardPorts'.
+    // Options:
+    //   "notify"      - (Default) Show a notification asking if you want to open the port in a browser.
+    //   "openBrowser" - Automatically open the host's default web browser to the forwarded port (using http/https protocol if specified).
+    //   "openPreview" - Attempt to open the forwarded port in VS Code's embedded Simple Browser.
+    //   "silent"      - Forward the port without showing any notification or taking any action.
+
+    // protocol: Specifies the network protocol (http or https) used by the service on a forwarded port.
+    // Details: A string value, either "http" or "https". Defaults to "http" if omitted.
+    // Use Case: Helps VS Code construct the correct URL (e.g., http://localhost:<port> vs https://localhost:<port>) when using actions like "openBrowser" in 'onAutoForward'.
+  },
+
+  // remoteEnv: Sets environment variables specifically for VS Code Server and its processes (terminal, debugger).
+  // Details: An object mapping environment variable names to string values. These are applied after connecting.
+  // Use Case: Configure environment variables needed only by VS Code tools or override container-wide settings for the VS Code session.
+  "remoteEnv": {},
+
+  // overrideCommand: Determines whether the container's default command (ENTRYPOINT/CMD) should be overridden.
+  // Details: A boolean value (true or false). Defaults to true. When true, VS Code ignores the image's default command and runs a 
+  //    command like 'sleep infinity' to keep the container running idly. When false, the container runs its original ENTRYPOINT/CMD as defined in the Dockerfile.
+  // Use Case: Set to true (default) for typical development workflows where you want the container to stay alive for VS Code to connect. 
+  //    Set to false only if you specifically need the container's original ENTRYPOINT to run instead (uncommon for dev containers, as the container might exit).
+  "overrideCommand": true,
+
+  // updateContentCommand: Executes a command/script ONCE.
+  // Timing: Runs after the container is created and your project files are available inside, but before postCreateCommand.
+  // Use Case: For setup needing the source code, like installing requirements from a cloned file or updating Git submodules.
+  // EXAMPLE - "install dev tools" : "bash .devcontainer/install-dev-tools.sh"
+  "updateContentCommand" : {},
+
+  // postCreateCommand: Executes a command/script ONCE.
+  // Timing: Runs after the container is created (and after updateContentCommand if present), but before VS Code connects.
+  // Use Case: Ideal for general one-time setup tasks like installing global tools, initializing databases, or cloning dependent repositories.
+  "postCreateCommand" : {},
+
+  // postStartCommand: Executes a command/script EVERY time the container starts.
+  // Timing: Runs after the container boots up (and after postCreateCommand on first start), but before VS Code connects.
+  // Use Case: Ideal for starting background services or running tasks needed at the beginning of each session.
+  "postStartCommand" : {},
+
+  // postAttachCommand: Executes a command/script EVERY time VS Code attaches to the container.
+  // Timing: Runs after VS Code connects to the already running container (including on window reloads).
+  // Use Case: Ideal for commands related to the active VS Code session, like starting a development server in the integrated terminal.
+  "postAttachCommand" : {
+    "test nvidia" : "nvidia-smi",
+    "test nvcc" : "nvcc --version",
+    "check python version" : "python3 --version",
+    "check tensorflow" : "python3 /workspace/src/check_tensorflow.py",
+    "test tensorflow" : "python3 /workspace/src/test_tensorflow_gpu_access.py"
+  },
+
+  // customizations: Configures VS Code settings and extensions for this dev container.
+  // Details: Specifies extensions to install and settings to apply automatically inside the container.
+  // Use Case: Ensure required extensions (like linters, debuggers) and settings are available for the project.
+  "customizations" : {
+    "vscode" : {
+      "extensions" : [
+        // ms-python.python" is for Python development
+        "ms-python.python",
+
+        // ms-toolsai.jupyter is for Jupyter notebook support
+        "ms-toolsai.jupyter",
+        
+        // ms-toolsai.vscode-jupyter-cell-tags is for Jupyter cell tags
+        "ms-toolsai.vscode-jupyter-cell-tags",
+        
+        // ms-toolsai.jupyter-keymap is for Jupyter keybindings
+        "ms-toolsai.jupyter-keymap",
+        
+        // ms-toolsai.jupyter-renderers is for Jupyter renderers
+        "ms-toolsai.jupyter-renderers",
+        
+        // ms-toolsai.vscode-jupyter-slideshow is for Jupyter slideshow presentations
+        "ms-toolsai.vscode-jupyter-slideshow",
+        
+        // ms-python.vscode-pylance is for Python language support
+        "ms-python.vscode-pylance",
+        
+        // Google Gemini Code Assist as another option instead of Copilot
+        "google.geminicodeassist",
+
+        // Autopep8 for Python code formatting
+        "ms-python.autopep8",
+
+        // isort for Python import sorting
+        "ms-python.isort",
+
+        // Black for Python code formatting as an optional extension
+        // "ms-python.black-formatter",
+
+        // VSCode Containers Extension as an optional extension
+        // "ms-azuretools.vscode-containers",
+
+        // Lean4 Theorem Prover as an optional extension
+        // "leanprover.lean4",
+
+        
+      ]
+    }
+  },
+
+  // shutdownAction: Defines what happens to the container(s) when VS Code disconnects.
+  // Details: Valid values are "none" (container keeps running) or "stopCompose" (runs 'docker compose down' or stops the container if not using Compose).
+  // Use Case: Keep background processes running ("none") or automatically clean up resources ("stopCompose").
+  "shutdownAction": "stopCompose" // Or "none"
+}

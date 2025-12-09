@@ -1,0 +1,21 @@
+## Devcontainer
+.devcontainer/apt-packages.txt
+.devcontainer/python_requirements.txt
+
+## Git
+.git
+.gitignore
+
+## VS Code
+.vscode
+
+## Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+venv/
+
+## Other
+README.md

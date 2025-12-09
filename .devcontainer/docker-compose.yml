@@ -1,0 +1,84 @@
+version: '3.9'
+
+services:
+  app:
+    # user: "user" # Runs the container processes as the 'user' user
+    # user: "1000:1000" # Can also use UID:GID
+    # environment:
+      # EXAMPLE_VAR: "value"
+      # Can also use list format:
+      # - EXAMPLE_VAR=value
+    build:
+      context: ..
+      dockerfile: .devcontainer/dev.Dockerfile
+      # args:
+        # EXAMPLE_ARG: value
+        # VARIANT: 2.16.1-gpu
+      tags:
+        # Any tags desired may be 
+        # passed here in the <name>:<tag> format.
+        - "tensorflowbase:latest-gpu"
+        - "tensorflowbase:2.16.1-gpu"
+    
+    # Mount your project code into the container
+    volumes:
+      # Volume mount options control consistency between host and container (Docker Desktop only):
+      # :cached      - Optimizes for container write speed; host view may have a slight delay. Good for general development.
+      # :delegated   - Maximizes container performance; host view may have longer delays. Good for container-heavy I/O.
+      # :consistent  - (Or omitting the option) Ensures perfect sync; potentially slower. Use if host needs instant updates from container.
+      - ..:/workspace:cached
+      # Add other mounts here if needed, corresponding to devcontainer.json -> mounts
+      # Example: Mount gcloud config (adjust source path if needed)
+      # - ${APPDATA}/gcloud:/root/.config/gcloud:cached 
+      # Example: Mount the host's S: drive to /mnt/storage inside this container
+      # - /s/:/mnt/storage:cached
+      # Or potentially: 
+      # - //s/:/mnt/s_drive:cached
+      # Windows host path needs escaping or different env var handling
+      # --- Portable Mount Examples ---
+      # Example: Mount a sub-directory for configs
+      # - ./config:/app/config:ro # Mounts './config' read-only
+      # Example: Use a named volume (defined below) for persistent data
+      # - app_data:/app/data
+    
+    # Keeps the container running for VS Code to attach
+    command: sleep infinity
+    
+    # --- GPU Configuration ---
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all # Or specify specific GPU IDs
+              capabilities: [gpu]
+    
+    # Equivalent of remoteEnv
+    # environment:
+    #   EXAMPLE_ENV_VAR: value
+
+    # Equivalent of runArgs port mapping (-p)
+    # ports:
+    #   - "8080:8080"
+
+  # --- Example: PostgreSQL Service with Portable Data Volume ---
+  # db:
+  #   image: postgres:15
+  #   restart: always
+  #   environment:
+  #     POSTGRES_DB: mydatabase
+  #     POSTGRES_USER: myuser
+  #     POSTGRES_PASSWORD: mysecretpassword # Use secrets in production!
+  #   volumes:
+  #     # Mount the Docker-managed named volume 'postgres_data'
+  #     - postgres_data:/var/lib/postgresql/data
+  #   # ports:
+  #   #   - "5432:5432"
+
+# --- Top-Level Volume Declarations ---
+# Define Docker-managed named volumes here for persistent data.
+# Docker handles where these are stored on the host, making it portable.
+# volumes:
+#   postgres_data:
+#     # driver: local # Default driver
+#   app_data:
