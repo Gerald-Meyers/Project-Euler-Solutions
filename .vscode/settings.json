@@ -1,48 +1,56 @@
 {
-  "python.analysis.typeCheckingMode": "strict",
-  "editor.rulers": [
-    72,
-    79,
-    120
-  ],
-  "[dockercompose]": {
-    "editor.insertSpaces": true,
-    "editor.tabSize": 2,
-    "editor.autoIndent": "advanced",
-    "editor.quickSuggestions": {
-      "other": true,
-      "comments": false,
-      "strings": true
-    }
-  },
-  "python.analysis.diagnosticSeverityOverrides": {
-    "reportArgumentType": "error",
-    "reportOptionalMemberAccess": "warning",
-    "reportOptionalSubscript": "warning",
-    "reportOptionalCall": "warning",
-    "reportGeneralTypeIssues": "warning",
-    "reportMissingTypeArgument": "none",
-    "reportUntypedBaseClass": "none",
-    "reportUntypedFunctionDecorator": "none",
-    "reportUntypedClassDecorator": "none",
-    "reportImportCycles": "error",
-    "reportIncompatibleMethodOverride": "none",
-    "reportIncompatibleVariableOverride": "none",
-    "reportUnnecessaryTypeIgnoreComment": "none",
-    "reportUnusedImport": "none",
-    "reportAbstractUsage": "none",
-    "reportAssertAlwaysTrue": "none",
-    "reportCallIssue": "none",
-    "reportAssertTypeFailure": "none",
-    "reportDeprecated": "information",
-    "reportAssignmentType": "information",
-    "reportAttributeAccessIssue": "information",
-    "reportDuplicateImport": "information",
-    "reportUnknownVariableType": "information",
-    "reportUnknownParameterType": "information",
-    "reportUnknownArgumentType": "information",
-    "reportUnknownLambdaType": "information",
-    "reportUnknownMemberType": "information",
-    "reportMissingParameterType": "information"
+    "editor.largeFileOptimizations": false,
+    "editor.rulers": [ 72, 79, 120],
+    "editor.renderWhitespace": "none",
+    "[dockercompose]": {
+        "editor.insertSpaces": true,
+        "editor.tabSize": 2,
+        "editor.autoIndent": "advanced",
+        "editor.quickSuggestions": {
+            "other": true,
+            "comments": false,
+            "strings": true
+        }
+    },
+    "git.confirmSync": false,
+
+    "[python]": {
+        "editor.defaultFormatter": "ms-python.autopep8",
+        "editor.formatOnSave": true,
+        "editor.codeActionsOnSave": {
+            "source.organizeImports": "explicit"
+        }
+    },
+    "python.analysis.typeCheckingMode": "strict",
+    "python.analysis.diagnosticSeverityOverrides": {
+        "reportArgumentType": "error",
+        "reportOptionalMemberAccess": "warning",
+        "reportOptionalSubscript": "warning",
+        "reportOptionalCall": "warning",
+        "reportGeneralTypeIssues": "warning",
+        "reportMissingTypeArgument": "none",
+        "reportUntypedBaseClass": "none",
+        "reportUntypedFunctionDecorator": "none",
+        "reportUntypedClassDecorator": "none",
+        "reportImportCycles": "error",
+        "reportIncompatibleMethodOverride": "none",
+        "reportIncompatibleVariableOverride": "none",
+        "reportUnnecessaryTypeIgnoreComment": "none",
+        "reportUnusedImport": "none",
+        "reportAbstractUsage": "none",
+        "reportAssertAlwaysTrue": "none",
+        "reportCallIssue": "none",
+        "reportAssertTypeFailure": "none",
+        "reportDeprecated": "information",
+        "reportAssignmentType": "information",
+        "reportAttributeAccessIssue": "information",
+        "reportDuplicateImport": "information",
+        "reportUnknownVariableType": "information",
+        "reportUnknownParameterType": "information",
+        "reportUnknownArgumentType": "information",
+        "reportUnknownLambdaType": "information",
+        "reportUnknownMemberType": "information",
+        "reportMissingParameterType": "information"
   }
+
 }
