@@ -108,7 +108,10 @@
   // Use Case: Ensure required extensions (like linters, debuggers) and settings are available for the project.
   "customizations" : {
     "vscode" : {
-      "settings": {},// V
+      "settings": { 
+        // VS Code settings to apply inside the container.
+        // Also available as .vscode/settings.json
+      },
       "extensions" : [
         // ms-python.python" is for Python development
         "ms-python.python",
@@ -138,7 +141,11 @@
         "ms-python.autopep8",
 
         // isort for Python import sorting
+<<<<<<< HEAD
         "ms-python.isort" //,
+=======
+        "ms-python.isort"
+>>>>>>> 8170ce3c0f3c5bcfe3f58638d8e85072835d62fa
 
         // Black for Python code formatting as an optional extension
         // "ms-python.black-formatter",
