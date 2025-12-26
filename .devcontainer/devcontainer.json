@@ -113,7 +113,7 @@
         // Also available as .vscode/settings.json
       },
       "extensions" : [
-        // ms-python.python" is for Python development
+        // ms-python.python is for Python development
         "ms-python.python",
 
         // ms-toolsai.jupyter is for Jupyter notebook support
@@ -141,7 +141,10 @@
         "ms-python.autopep8",
 
         // isort for Python import sorting
-        "ms-python.isort" //,
+        "ms-python.isort",
+
+        // Red Hat YAML for YAML language support and formatting
+        "redhat.vscode-yaml"
 
         // Black for Python code formatting as an optional extension
         // "ms-python.black-formatter",
