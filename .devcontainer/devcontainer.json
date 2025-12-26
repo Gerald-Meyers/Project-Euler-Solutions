@@ -107,9 +107,8 @@
   // Details: Specifies extensions to install and settings to apply automatically inside the container.
   // Use Case: Ensure required extensions (like linters, debuggers) and settings are available for the project.
   "customizations" : {
-    "vscode" : {"settings": {
-        "editor.rulers": [72, 79]
-      },
+    "vscode" : {
+      "settings": {},// V
       "extensions" : [
         // ms-python.python" is for Python development
         "ms-python.python",
