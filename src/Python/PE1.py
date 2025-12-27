@@ -12,7 +12,8 @@ def MlnN_factor_sum(
     max_value: int = 1000,
 ) -> int:
     """
-    This is a simple function that takes advantage of the fact that sets only contain unique elements.
+    This is a simple function that takes advantage of the fact that sets
+        only contain unique elements.
 
     Time Complexity:
     Let I be the set of provided integers.
@@ -26,7 +27,8 @@ def MlnN_factor_sum(
         T   = M(1/n1 + 1/n2 + ... + 1/nN) 
             = M sum_{n∈I}^M 1/n.
 
-    In a worst case scenario, I is the set of integers contains every integer below N; that is I = [1, 2, ..., N].
+    In a worst case scenario, I is the set of integers contains every
+        integer below N; that is I = [1, 2, ..., N].
     Here, the total is approximated by the harmonic series:
         T   = M sum_{n=1}^N 1/n 
             = M int_1^M 1/x dx 
@@ -35,16 +37,22 @@ def MlnN_factor_sum(
     ∴ Therefore the time complexity is bounded from above by 
         O(M*ln(N)).
 
-    There is another caveat, python has to check the uniqueness of each element during a union operation, 
-        so in addition to the sum operation taking O(M*ln(N)) time, the union operation also take O(M*ln(N)) time.
-    This just adds a factor of 2 to the time complexity, and can be neglected.
+    There is another caveat, python has to check the uniqueness of each 
+        element during a union operation, so in addition to the sum 
+        operation taking O(M*ln(N)) time, the union operation also take 
+        O(M*ln(N)) time.
+    This just adds a factor of 2 to the time complexity, and can be 
+        neglected.
 
     Space Complexity:
-    Since this algorithm stores all mutiples of each integer below max_value then updates the set of multiples, 
-        each individual set contains M/n elements.
-    If each set were stored separately and then unioned, there would be M/n1 + M/n2 + ... + M/nN elements.
+    Since this algorithm stores all mutiples of each integer below 
+        max_value then updates the set of multiples, each individual
+        set contains M/n elements.
+    If each set were stored separately and then unioned, there would be 
+        M/n1 + M/n2 + ... + M/nN elements.
 
-    In the same worst case scenario, there would be O(M*ln(N)) space complexity.
+    In the same worst case scenario, there would be O(M*ln(N)) space 
+        complexity.
 
 
     :param integers: The list of integers to find all multiples of below max_value.
@@ -73,13 +81,15 @@ def MxN_broken_mutiple_sum(
     max_value: int = 1000,
 ) -> int:
     """
-    This is a simple function that iterates through each integer in the set of integers below max_value, and checking if it is divisible by any of the integers in the set of integers.
+    This is a simple function that iterates through each integer in the 
+    set of integers below max_value, and checking if it is divisible by 
+    any of the integers in the set of integers.
 
     Algorithmic Complexity:
     Let N = len(integers) and M = max_value.
     For each integer below M
 
-    :param integers: The list of integers to find all multiples of below max_value.
+    :param integers: The list of integers to find all multiples below max_value.
     :type integers: list[int]
     :param max_value: The bounding value to find the multiples of integers.
     :type max_value: int
@@ -91,7 +101,9 @@ def MxN_broken_mutiple_sum(
     for i in range(0, max_value):
         for n in integers:
             if i % n == 0:
-                total_sum += i  # this will multi-count mutiples for which n is divisible by two or more elements
+                total_sum += i
+                # this will multi-count mutiples for which n is
+                # divisible by two or more elements
                 break  # exit inner for loop
 
     return total_sum
