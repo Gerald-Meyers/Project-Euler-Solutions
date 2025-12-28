@@ -24,3 +24,7 @@ vim
 
 # For encryption and signing.
 gnupg2
+
+# For C development
+gcc
+make

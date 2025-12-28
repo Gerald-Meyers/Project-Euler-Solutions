@@ -8,3 +8,6 @@ autokeras
 ipykernel
 scikit-learn
 regex
+cython
+setuptools
+wheel
