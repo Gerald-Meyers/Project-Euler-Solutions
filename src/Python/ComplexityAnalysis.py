@@ -94,6 +94,7 @@ class ComplexityGraph:
             plot_ylabel: Optional[str] = None,
             plot_xscale: Optional[str] = None,
             plot_yscale: Optional[str] = None,
+            figure_dimension: tuple[Scalar, Scalar] = (8, 8)
     ) -> None:
         '''
         Generate the time graph of a function representing the performance
@@ -118,7 +119,7 @@ class ComplexityGraph:
         assert self.time_data is not None, \
             "A plot cannot be made without the time the function took to run."
 
-        (figure, plot) = subplots(1, 1, figsize=(8, 8))
+        (figure, plot) = subplots(1, 1, figsize=figure_dimension)
 
         plot.scatter(argument_values, self.time_data,
                      label=plot_label)
