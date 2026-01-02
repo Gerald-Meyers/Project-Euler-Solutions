@@ -2,4 +2,7 @@
 .vscode/
 
 # Cython Build Folders
-**/build/
+**/build/*
+
+# Pycache
+**/__pycache__/

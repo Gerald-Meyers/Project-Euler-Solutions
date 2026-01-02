@@ -144,7 +144,7 @@
         "ms-python.isort",
 
         // Red Hat YAML for YAML language support and formatting
-        "redhat.vscode-yaml"
+        "redhat.vscode-yaml",
 
         // Black for Python code formatting as an optional extension
         // "ms-python.black-formatter",
@@ -154,6 +154,9 @@
 
         // Lean4 Theorem Prover as an optional extension
         // "leanprover.lean4",
+
+        // C/C++ Extension pack
+        "ms-vscode.cpptools-extension-pack"
 
         
       ]

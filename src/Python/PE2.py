@@ -15,23 +15,20 @@ phi = (1 + 5 ** .5) / 2
 # psi = (1 - 5 ** .5) / 2
 
 
-def direct_fibonacci(
-        n: int
-):
+def direct_fibonacci(n: int
+                     ):
     '''
     Directly calculate the nth term in the Fibonacci sequence by truncating the golden ratio, Φ, and certain powers of it.
     Implemented using Binet's formula 
+
+    This algorithm runs in constant time and constant space.
+        O(1)
 
     :param n: Description
     :type n: int
     '''
     return ((phi) ** (n) - (-phi) ** (-n)
             ) // (2 * phi - 1)
-
-
-def expontiate(x: , n):
-    if n == 0 and x != 1:
-        return 1  # Valid unless
 
 
 def iterative_fibonacci(
@@ -55,11 +52,8 @@ def iterative_fibonacci(
         return b
 
 
-print(
-    sum(
-        [
-            direct_fibonacci(i)
-            for i in range(0, 34, 3)
-        ]
+if __name__ == "__main__":
+    print(
+        sum([direct_fibonacci(i)
+             for i in range(0, 34, 3)])
     )
-)

@@ -3,14 +3,15 @@ If we list all the natural numbers below 10 that are multiples of 3 or 5, we get
 The sum of these multiples is 23.
 Find the sum of all the multiples of 3 or 5 below 1000.
 """
+from collections.abc import Sequence
 
-from collections.abc import Iterable
+from ComplexityAnalysis import ComplexityAnalysis, ComplexityGraph
+from numpy import asarray, inf, linspace, log, power
 
 
 def MlnN_factor_sum(
-    integers: Iterable[int],
-    max_value: int = 1000,
-) -> int:
+        integers: Sequence[int],
+        max_value: int = 1000,) -> int:
     """
     This is a simple function that takes advantage of the fact that sets
         only contain unique elements.
@@ -63,7 +64,7 @@ def MlnN_factor_sum(
     :rtype: int
     """
 
-    assert isinstance(integers, Iterable), "Provide a list of integers."
+    assert isinstance(integers, Sequence), "Provide a list of integers."
 
     multiples_set: set[int] = set()
     for n in integers:
@@ -72,14 +73,13 @@ def MlnN_factor_sum(
             i for i in range(n, max_value, n)
         }
 
-    print(multiples_set)
+    # print(multiples_set)
     return sum(multiples_set)
 
 
 def MxN_broken_mutiple_sum(
-    integers: Iterable[int],
-    max_value: int = 1000,
-) -> int:
+        integers: Sequence[int],
+        max_value: int = 1000,) -> int:
     """
     This is a simple function that iterates through each integer in the 
     set of integers below max_value, and checking if it is divisible by 
@@ -107,3 +107,30 @@ def MxN_broken_mutiple_sum(
                 break  # exit inner for loop
 
     return total_sum
+
+
+if __name__ == "__main__":
+
+    argument_values = asarray(power(linspace(1, 4, 20), 10),
+                              dtype=int)
+
+    timings = ComplexityAnalysis(
+        func=MlnN_factor_sum,
+        default_args={"integers": [3, 5],
+                      "max_value": 1000},
+        iteration_parameter=("max_value", argument_values)
+    ).measure_time()
+
+    ComplexityGraph(
+        time_data=timings
+    ).time_graph(argument_values=argument_values,
+                 model_information={"time_fitting_function": (lambda m, n, c: m*log(n) + c),
+                                    "model_name": "{:.2f}x + {:.2f}"},
+                 matplotlib_kwargs={"plot_title": "Time Complexity Graph with linear fit.",
+                                    # "plot_xscale": "log",
+                                    #  "plot_yscale":"log",
+                                    "plot_xlabel": "Value of max_value",
+                                    "plot_ylabel": "Time taken (s)",
+                                    "save_file": "PE1 Time Complexity Graph.png"},
+                 curve_fit_kwargs={"bounds": ([-inf, 0], [inf, inf]),
+                                   "p0": (1, 1)})
