@@ -1,0 +1,344 @@
+
+
+
+class PrimeStorageHandler:
+
+    def __init__(self,
+                 max_chunk_size: Integer = MAX_CHUNK_SIZE_BYTES,
+                 max_shard_size: Integer = MAX_SHARD_SIZE_BYTES,
+                 strict_limit: bool = True
+                 ) -> None:
+
+        self._CHUNK_SIZE = max_chunk_size
+        self._SHARD_SIZE = max_shard_size
+
+        self._strict_limit = strict_limit
+
+        self._STORAGE_DIR = Path(__file__).parent / 'StoredPrimes'
+        self._STORAGE_DIR.mkdir(exist_ok=True)
+        self._METADATA_FILE = self._STORAGE_DIR / f"metadata.json"
+
+    def _chunk_name(self,
+                    min_prime: Integer,
+                    max_prime: Integer
+                    ) -> str:
+        return f"Primes_min_{min_prime}_max_{max_prime}"
+
+    def _parse_chunk_name(self,
+                          chunk_name: str
+                          ) -> tuple[Integer, Integer]:
+        parts = [int(value)
+                 for value in chunk_name.split('_')
+                 if value.isdigit()]
+
+        if len(parts) != 2:
+            raise ValueError(
+                f"Shard name '{chunk_name}' does not contain exactly two integers.")
+
+        return (parts[0], parts[1])
+
+    def _shard_name(self,
+                    min_prime: Integer | str,
+                    max_prime: Integer | str,
+                    max_chunk_size: Optional[Integer] = None
+                    ) -> str:
+        return (f"Primes_Shard_"
+                f"Min_{min_prime}_"
+                f"Max_{max_prime}_"
+                f"Size_{self._CHUNK_SIZE if max_chunk_size is None else max_chunk_size}")
+
+    def _base_metadata(self,
+                       primes: NumpyIntegerArray,
+                       total_chunks: Integer,
+                       total_shards: Integer,
+                       ) -> dict[str, Any]:
+
+        return {
+            "chunk_size": self._CHUNK_SIZE,
+            "shard_size": self._SHARD_SIZE,
+            "itemsize": primes.itemsize,
+            "total_primes": len(primes),
+            "smallest_prime": primes[0],
+            "largest_prime": primes[-1],
+            "total_chunks": total_chunks,
+            "total_shards": total_shards,
+            "dtype": str(primes.dtype),
+            "shard_metadata": dict(),
+            "shard_names": list(),
+            "shard_metadata": dict()
+        }
+
+    def _shard_metadata(self,
+                        shard: Sequence[IntegerArray]
+                        ) -> dict[str, Any]:
+        return {
+            "total_chunks": len(shard),
+            "total_primes": sum([len(chunk) for chunk in shard]),
+            "smallest_prime": shard[0][0],
+            "largest_prime": shard[-1][-1],
+            "chunk_names": list(),
+            "chunk_metadata": dict()
+        }
+
+    def _chunk_metadata(self,
+                        primes: IntegerArray
+                        ) -> dict[str, Any]:
+        return {
+            "smallest_prime": primes[0],
+            "largest_prime": primes[-1],
+            "total_primes": len(primes)
+        }
+
+    def _relevant_shards(self,
+                         limit: Integer
+                         ) -> Sequence[Path] | None:
+        """
+        Select all shards with min_prime less than limit.
+
+        :param self: Description
+        :param limit: The largest possible prime number to load from storage.
+        :type limit: Integer
+        :return: Description
+        :rtype: Path
+        """
+        metadata: dict[str, dict[str, Any]] = self._load_metadata()
+        shard_paths: Optional[Sequence[Path]] = None
+
+        if not metadata:
+            raise FileNotFoundError(
+                f"Metadata file {self._METADATA_FILE} is empty; "
+                f"no shards available."
+            )
+
+        for relative_path_str, info in metadata.items():
+            assert isinstance(info, dict)
+
+            shard_min: int = int(info.get("smallest_prime", 0))
+
+            if shard_min <= limit:
+                shard_paths.append(self._STORAGE_DIR / relative_path_str)
+
+        if shard_paths:
+            return shard_paths
+
+    def verify_storage_integrity(self
+                                 ) -> bool:
+        if not self._METADATA_FILE.exists():
+            return False
+
+        with self._METADATA_FILE.open("r") as f:
+            meta = load_json_from_file(f)  # Changed from load(f)
+
+        # Shards are stored as keys in metadata; verify those specifically
+        for shard_path_str in meta.keys():
+            path = self._STORAGE_DIR / shard_path_str
+            if not path.exists():
+                print(f"Missing shard: {path.name}")
+                return False
+        return True
+
+    def _load_shard(self,
+                    shard_file: Path
+                    ) -> NumpyIntegerArray:
+
+
+
+    def load_from_disk(self,
+                       limit: Integer,
+                       ) -> NumpyIntegerArray | None:
+        """
+        Load primes from compressed storage state.
+        Return prime chunks that do not start with a prime smaller than limit.
+
+        :param limit: Description
+        :type limit: Integer
+        :return: Description
+        :rtype: Sequence[IntegerArray] | None
+        """
+
+        shard_paths = self._relevant_shards(limit)
+        try:
+
+            if shard_paths is not None:
+                primes = union1d(*[self._load_shard(shard_path)
+                                   for shard_path in shard_paths])
+                return primes[primes <= limit]
+            else:
+                raise FileNotFoundError(f""
+                                        )
+
+        except IOError as e:
+            print(f"I/O Error on path {shard_file}\n",
+                  f"Error trace:\n,",
+                  f"{e}")
+            return None
+
+        except Exception as e:
+            print(f"An unexpected error occurred:\n",
+                  f"{e}")
+            return None
+
+
+
+    def save_to_disk(self,
+                     primes: NumpyIntegerArray,
+                     target_chunk_count: Optional[Integer]=None,
+                     target_shard_count: Optional[Integer]=None
+                     ) -> bool:
+        """
+        Divide the array into chunks based on self._CHUNK_SIZE, allocate
+        each chunk to a shard so as to not exceed self._SHARD_SIZE. Save
+        to one or more compressed npz files (each being one shard).
+
+        :param primes: Description
+        :type primes: IntegerArray
+        :return: Description
+        :rtype: bool
+        """
+        total_elements = len(primes)
+
+        # If target_chunk_count is passed, the total number of shards
+        # should be recalculated based on this number.
+        if target_chunk_count is not None:
+            self._recalculate_CHUNK_SIZE(total_elements,
+                                         primes.itemsize,
+                                         target_chunk_count)
+
+        if target_shard_count is not None:
+            self._recalculate_SHARD_SIZE(total_elements,
+                                         primes.itemsize,
+                                         target_shard_count)
+
+        if self._CHUNK_SIZE < primes.itemsize:
+            raise ValueError(
+                f"Configured chunk size ({self._CHUNK_SIZE} bytes) is smaller than "
+                f"the size of a single {primes.dtype} element ({primes.itemsize} bytes)."
+            )
+
+        elements_per_chunk = self._CHUNK_SIZE // primes.itemsize
+
+        # Assumes _SHARD_SIZE is a multiple of _CHUNK_SIZE
+        chunks_per_shard = self._SHARD_SIZE // self._CHUNK_SIZE
+
+        def get_total_chunks():
+            whole_chunks = total_elements // elements_per_chunk
+            return (whole_chunks
+                    if whole_chunks * elements_per_chunk == total_elements
+                    else whole_chunks + 1)
+
+        def get_total_shards():  # Does not assume _SHARD_SIZE is a multiple of _CHUNK_SIZE
+            whole_shards = total_chunks // chunks_per_shard
+            return (total_chunks
+                    if whole_shards * chunks_per_shard == total_chunks
+                    else whole_shards + 1)
+
+        total_chunks = get_total_chunks()
+        total_shards = get_total_shards()
+
+        # shard_path = self._STORAGE_DIR / self._shard_name(primes[-1])
+
+        def get_slices(idx: Integer,
+                       prime_array: IntegerArray
+                       ) -> IntegerArray:
+            return prime_array[idx * elements_per_chunk: (idx + 1) * elements_per_chunk]
+
+        def get_chunks(idx: Integer,
+                       chunked_primes: Sequence[IntegerArray]
+                       ) -> Sequence[IntegerArray]:
+            return chunked_primes[idx * chunks_per_shard: (idx + 1) * chunks_per_shard]
+
+        chunks: Sequence[IntegerArray] = [get_slices(idx)
+                                          for idx in range(total_chunks)]
+        shards = [get_chunks(idx, chunks)
+                  for idx in range(total_shards)]
+
+        try:
+
+            base_metadata = self._base_metadata(
+                primes, total_chunks, total_shards)
+
+            for shard in shards:
+
+                shard_name = self._shard_name(shard[0][0],
+                                              shard[-1][-1],
+                                              self._CHUNK_SIZE)
+                shard_path = (self._STORAGE_DIR / shard_name
+                              ).with_suffix(".npz")
+
+                # Initialize
+                shard_metadata = self._shard_metadata(shard)
+                metadata["shard_metadata"][shard_name] = dict()
+                shard_metadata = metadata["shard_metadata"][shard_name]
+
+                shard_dict: dict[str, Any] = dict()
+                for chunk in shard:
+                    chunk_name = self._chunk_name(chunk[0], chunk[-1])
+                    shard_metadata |= {chunk_name: self._metadata(chunk)}
+                    shard_dict |= {chunk_name: chunk}
+
+            shard_dict = dict()
+            for idx in range(total_chunks):
+                chunk = get_slices(idx)
+
+                if len(chunk) == 0:
+                    continue
+
+                chunk_name = self._chunk_name(chunk[0], chunk[-1])
+
+                shard_dict[chunk_name] = chunk
+
+            with shard_path.open('wb') as file:
+                savez_compressed(file, **shard_dict)
+
+            self._save_metadata(metadata)
+
+            print(
+                f"Saved primes to {shard_path}\n"
+                f"Total number of arrays: {total_chunks}"
+            )
+
+            return True
+
+        except IOError as e:
+
+            print(
+                f"I/O Error with {shard_path}\n"
+                "Error trace:\n",
+                e
+            )
+
+            return False
+
+        except Exception as e:
+            print(
+                f"An unexpected error occurred:\n",
+                e
+            )
+            return False
+
+
+def consolidate_primes(self) -> None:
+    """
+    Loads all saved primes, clears existing shards/metadata,
+    and re-saves them into optimal 250MB files.
+    """
+    metadata = self._load_metadata()
+    if not metadata:
+        return
+
+    all_primes = self.load_from_disk(float('inf'))
+
+    if all_primes is None:
+        return
+
+    # Clean up old files
+    for shard_path_str in metadata.keys():
+        path = self._STORAGE_DIR / shard_path_str
+        if path.exists():
+            path.unlink()
+
+    if self._METADATA_FILE.exists():
+        self._METADATA_FILE.unlink()
+
+    # Re-save utilizing optimized sharding logic
+    self.save_to_disk(all_primes)

@@ -111,6 +111,9 @@
       "settings": { 
         // VS Code settings to apply inside the container.
         // Also available as .vscode/settings.json
+
+        // "isort.path": ["${interpreter}", "-m", "isort"],
+        // "isort.check": true
       },
       "extensions" : [
         // ms-python.python is for Python development
@@ -147,7 +150,7 @@
         "redhat.vscode-yaml",
 
         // Black for Python code formatting as an optional extension
-        // "ms-python.black-formatter",
+        "ms-python.black-formatter",
 
         // VSCode Containers Extension as an optional extension
         // "ms-azuretools.vscode-containers",
@@ -156,8 +159,9 @@
         // "leanprover.lean4",
 
         // C/C++ Extension pack
-        "ms-vscode.cpptools-extension-pack"
+        "ms-vscode.cpptools-extension-pack",
 
+        "ms-python.debugpy"
         
       ]
     }

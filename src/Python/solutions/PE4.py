@@ -66,9 +66,10 @@ Find the largest palindrome made from the product of two 3-digit numbers.
 # https://projecteuler.net/post_id=1214
 
 
-from CommonTypes import *
 from numpy import arange, log10, max, ndarray, outer, vectorize, zeros
-from Primes import prime_factor_multiplicity
+
+from Python.common.CommonTypes import *
+from Python.common.math.Primes import prime_factor_multiplicity
 
 
 def reverse_str_array(integer_array: StringArray | IntegerArray
@@ -85,4 +86,5 @@ number_array = arange(900, 1000)
 product_array = outer(number_array, number_array)
 
 print(max(product_array[is_palindromic(product_array)]
+          ))
           ))

@@ -3,6 +3,7 @@
 
 # Cython Build Folders
 **/build/*
+**/*.cpython-*
 
 # Pycache
 **/__pycache__/

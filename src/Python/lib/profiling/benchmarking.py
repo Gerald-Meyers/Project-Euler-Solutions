@@ -5,28 +5,29 @@ This module acts as a wrapper for timeit and tracemalloc, to determine the time-
 The result of these timed
 By passing a desired modeling function,
 """
+
 import gc
 import tracemalloc
 from functools import partial
 from pathlib import Path
 from timeit import repeat, timeit
-from typing import Any, Callable, Iterable, List
 
-from common import *
 from matplotlib.pyplot import subplots
 from numpy import asarray, mean, std
 from scipy.optimize import curve_fit
 
+from Python.common.common import *
+
 
 class ComplexityAnalysis:
-    '''
+    """
     Docstring for ComplexityAnalysis
 
     The assumption of this class regarging the function being analyzed
     is that the arguments are all accessible as keyword arguments, that
     is none of the arguments are anonymous or are not strictly
     positional. All arguments must be accessible as keyword arguments.
-    '''
+    """
 
     def __init__(
         self,
@@ -35,7 +36,7 @@ class ComplexityAnalysis:
         iteration_parameter: tuple[str, ScalarArray],
         number: int = 1_000,
         enable_gc: bool = True,
-        repitions: int = 5
+        repitions: int = 5,
     ):
         self.func = func
         self.number = number
@@ -48,25 +49,19 @@ class ComplexityAnalysis:
 
         self.repitions = repitions
 
-    def _time(
-            self,
-            kwarg: dict[str, Any]
-    ) -> list[float]:
+    def _time(self, kwarg: dict[str, Any]) -> list[float]:
 
         return repeat(
             partial(self.func, **(self.args | kwarg)),
             setup=self.setup,
             number=self.number,
             globals=globals(),
-            repeat=self.repitions
+            repeat=self.repitions,
         )
 
-    def _space(self) -> float:
-        ...
+    def _space(self) -> float: ...
 
-    def measure_time(
-        self
-    ) -> list[list[float]]:
+    def measure_time(self) -> list[list[float]]:
 
         repeat_array: list[list[float]] = list()
         key, values = self.iteration_parameter
@@ -77,13 +72,12 @@ class ComplexityAnalysis:
 
             print(
                 f"{i+1} of {len(values)}:",
-                f"Completed time evaluation of {value} for parameter {key}"
+                f"Completed time evaluation of {value} for parameter {key}",
             )
 
         return repeat_array
 
-    def measure_space(self) -> float:
-        ...
+    def measure_space(self) -> float: ...
 
 
 class ComplexityGraph:
@@ -95,25 +89,25 @@ class ComplexityGraph:
     """
 
     def __init__(
-            self,
-            time_data: Optional[list[list[ScalarArray]]] = None,
-            space_data: Optional[ScalarArray] = None,
+        self,
+        time_data: Optional[list[list[ScalarArray]]] = None,
+        space_data: Optional[ScalarArray] = None,
     ) -> None:
         self.time_data = time_data
         self.space_data = space_data
 
     def time_graph(
-            self,
-            argument_values: ScalarArray,
-            model_information: Optional[dict[str, Any]] = None,
-            time_fitting_function: Optional[ArrayFunction] = None,
-            save_file: Optional[str | Path] = None,
-            matplotlib_kwargs: Optional[dict[str, str]] = None,
-            curve_fit_kwargs: Optional[dict[str, Any]] = None,
-            figure_dimension: Optional[tuple[Scalar, Scalar]] = (8, 8),
-            model_name: Optional[str] = None
+        self,
+        argument_values: ScalarArray,
+        model_information: Optional[dict[str, Any]] = None,
+        time_fitting_function: Optional[ArrayFunction] = None,
+        save_file: Optional[str | Path] = None,
+        matplotlib_kwargs: Optional[dict[str, str]] = None,
+        curve_fit_kwargs: Optional[dict[str, Any]] = None,
+        figure_dimension: Optional[tuple[Scalar, Scalar]] = (8, 8),
+        model_name: Optional[str] = None,
     ) -> None:
-        '''
+        """
         Generate the time graph of a function representing the performance
         of the function over a domain of inputs. If the inputs are not
         strictly ordered, then the argument values must be mapped to an
@@ -129,23 +123,24 @@ class ComplexityGraph:
         :type argument_values: Iterable[float | int]
         :param save_file: File location to save graphic.
         :type save_file: Optional[str | Path]
-        '''
+        """
 
-        assert argument_values is not None, \
-            "A plot cannot be made without the arguments passed to the function."
-        assert self.time_data is not None, \
-            "A plot cannot be made without the time the function took to run."
+        assert (
+            argument_values is not None
+        ), "A plot cannot be made without the arguments passed to the function."
+        assert (
+            self.time_data is not None
+        ), "A plot cannot be made without the time the function took to run."
 
         if matplotlib_kwargs is None:
             matplotlib_kwargs = dict()
 
-        plot_title: Optional[str] = matplotlib_kwargs.get('plot_title', None)
-        scatter_label: Optional[str] = matplotlib_kwargs.get(
-            'scatter_label', None)
-        plot_xlabel: Optional[str] = matplotlib_kwargs.get('plot_xlabel', None)
-        plot_ylabel: Optional[str] = matplotlib_kwargs.get('plot_ylabel', None)
-        plot_xscale: Optional[str] = matplotlib_kwargs.get('plot_xscale', None)
-        plot_yscale: Optional[str] = matplotlib_kwargs.get('plot_yscale', None)
+        plot_title: Optional[str] = matplotlib_kwargs.get("plot_title", None)
+        scatter_label: Optional[str] = matplotlib_kwargs.get("scatter_label", None)
+        plot_xlabel: Optional[str] = matplotlib_kwargs.get("plot_xlabel", None)
+        plot_ylabel: Optional[str] = matplotlib_kwargs.get("plot_ylabel", None)
+        plot_xscale: Optional[str] = matplotlib_kwargs.get("plot_xscale", None)
+        plot_yscale: Optional[str] = matplotlib_kwargs.get("plot_yscale", None)
 
         (figure, plot) = subplots(1, 1, figsize=figure_dimension)
 
@@ -162,51 +157,54 @@ class ComplexityGraph:
             deviations.append(std(data))
 
         # Scatter the raw data
-        plot.scatter(timing_arguments, timings,
-                     label=scatter_label,
-                     s=5,
-                     c="black")
-        plot.errorbar(argument_values, means, 2*asarray(deviations),
-                      fmt="None")
+        plot.scatter(timing_arguments, timings, label=scatter_label, s=5, c="black")
+        plot.errorbar(argument_values, means, 2 * asarray(deviations), fmt="None")
 
         if model_information is not None:
-            time_fitting_function = model_information.get("time_fitting_function",
-                                                          None)
-            assert time_fitting_function is not None, \
-                "Please pass the function that scipy.curve_fit is supposed to use."
+            time_fitting_function = model_information.get("time_fitting_function", None)
+            assert (
+                time_fitting_function is not None
+            ), "Please pass the function that scipy.curve_fit is supposed to use."
 
             # time fitting function must take
             fit_result: tuple[NumpyScalarArray, NumpyScalarArray] = curve_fit(
                 f=time_fitting_function,
-                xdata=timing_arguments, ydata=timings,
-                **(curve_fit_kwargs if curve_fit_kwargs is not None else dict()))
+                xdata=timing_arguments,
+                ydata=timings,
+                **(curve_fit_kwargs if curve_fit_kwargs is not None else dict()),
+            )
 
             parameter_mean, parameter_covariance = fit_result
 
             # Calculate Standard Deviation
-            standard_deviation = sqrt(
-                diag(parameter_covariance))
+            standard_deviation = sqrt(diag(parameter_covariance))
             standard_error = standard_deviation / sqrt(len(argument_values))
 
             # Add the fitting function & standard deviation curves.
             model_name = model_information.get("model_name", None)
-            plot.plot(argument_values,
-                      time_fitting_function(argument_values,
-                                            *parameter_mean),
-                      label="Model fit" + (
-                          ": " + model_name.format(*parameter_mean)
-                          if model_name is not None else ""),
-                      color="orange")
-            plot.fill_between(argument_values,
-                              time_fitting_function(
-                                  argument_values,
-                                  *(parameter_mean - standard_deviation)),
-                              time_fitting_function(
-                                  argument_values,
-                                  *(parameter_mean + standard_deviation)),
-                              label="Standard Deviation: ±σ",
-                              alpha=.3,
-                              color="red")
+            plot.plot(
+                argument_values,
+                time_fitting_function(argument_values, *parameter_mean),
+                label="Model fit"
+                + (
+                    ": " + model_name.format(*parameter_mean)
+                    if model_name is not None
+                    else ""
+                ),
+                color="orange",
+            )
+            plot.fill_between(
+                argument_values,
+                time_fitting_function(
+                    argument_values, *(parameter_mean - standard_deviation)
+                ),
+                time_fitting_function(
+                    argument_values, *(parameter_mean + standard_deviation)
+                ),
+                label="Standard Deviation: ±σ",
+                alpha=0.3,
+                color="red",
+            )
 
         plot.legend()
         if plot_xlabel is not None:
@@ -224,4 +222,5 @@ class ComplexityGraph:
             figure.savefig(save_file)
 
     def space_graph(self) -> None:
+        ...
         ...

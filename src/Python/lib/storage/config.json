@@ -1,0 +1,6 @@
+{
+    "defaults":{
+        "storage_directory":"data",
+        "metadata_file":"metadata.json"
+        }
+}

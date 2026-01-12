@@ -11,3 +11,4 @@ regex
 cython
 setuptools
 wheel
+# isort
