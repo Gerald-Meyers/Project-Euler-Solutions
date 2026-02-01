@@ -1,13 +1,21 @@
+"""
+Loading primes from storage is faster than generating them on the fly,
+for large quantities, so long as the storage medium is not too cold.
+
+Generating 1 billion primes takes a bit over two minutes, while loading
+the same quantity from storage takes less than 5 seconds.
+"""
+
 from dataclasses import dataclass
 from math import ceil
 from pathlib import Path
-from typing import Any, Callable, Generator, Iterator, Optional, Sequence
+from typing import Any, Callable, Iterator, Optional
 
 from lib.types import Integer, NumpyIntegerArray, String
-from numpy import concatenate, slice, unique
+from numpy import concatenate, unique
 
 from .metadata_io import MetadataFile
-from .shard_io import ShardFile
+from .shard_io import ShardFile, ShardStorage
 
 _default_chunk_size: Integer = 25 * 1024 * 1024  # 25 MB
 _default_shard_size: Integer = 10 * _default_chunk_size  # 250 MB
@@ -67,18 +75,18 @@ class PartitionStrategy:
 
         # 1. Resolve Shard Size (Items per Shard)
         items_per_shard = PartitionStrategy._resolve_limit(
-            total_items,
-            target_shard_count,
-            max_shard_bytes,
-            item_byte_size,
+            total_items=total_items,
+            item_bytes=item_byte_size,
+            target_count=target_shard_count,
+            target_bytes=max_shard_bytes,
         )
 
         # 2. Resolve Chunk Size (Items per Chunk)
         items_per_chunk = PartitionStrategy._resolve_limit(
-            items_per_shard,  # Parent container size
-            target_chunks_per_shard,
-            max_chunk_bytes,
-            item_byte_size,
+            total_items=items_per_shard,
+            item_bytes=item_byte_size,
+            target_count=target_chunks_per_shard,
+            target_bytes=max_chunk_bytes,
         )
 
         # Ensure a chunk can't be larger than the shard it lives in.
@@ -169,6 +177,12 @@ class ShardManager:
     merges potentially inhomogeneous shards into homogeneous shards.
     """
 
+    def __init__(
+        self,
+        shard_factory: Callable[[Path | String], ShardStorage] = ShardFile,
+    ) -> None:
+        self._shard_factory = shard_factory
+
     def save(
         self,
         primes_array: NumpyIntegerArray | None = None,
@@ -182,7 +196,7 @@ class ShardManager:
         overwrite_metadata: bool = False,
     ) -> None:
 
-        if not primes_array:
+        if primes_array is None:
             raise ValueError(f"")
 
         metadata_file = MetadataFile(Path(metadata_path))
@@ -192,7 +206,8 @@ class ShardManager:
         # Basic details about the prime
         total_primes = primes.size
 
-        metadata = {  # Some basic metadata
+        # Some basic metadata
+        metadata = {
             "chunk_size": chunk_byte_size,
             "shard_size": shard_byte_size,
             "itemsize": primes.itemsize,
@@ -220,10 +235,11 @@ class ShardManager:
         for shard_idx, chunks in self._partitions(primes, plan):
 
             shard_path = (
-                _data_directory / f"prime_shard_{shard_idx}_of_{plan.total_shards}.npz"
+                _data_directory
+                / f"prime_shard_{shard_idx+1}_of_{plan.total_shards}.npz"
             )
             metadata["shard_paths"].append(str(shard_path))
-            shard_file = ShardFile(path=shard_path)
+            shard_file = self._shard_factory(shard_path)
 
             metadata |= self._prepare_shard_metadata(shard_idx, chunks, shard_path)
 
@@ -240,72 +256,81 @@ class ShardManager:
 
     def load(
         self,
-        min: Optional[Integer],
-        max: Optional[Integer],
+        min: Optional[Integer] = None,  # Minimum prime to load, inclusively.
+        max: Optional[Integer] = None,  # Maximum prime to load, inclusively.
         metadata_path: Path | str = _default_metadata_file,
     ) -> NumpyIntegerArray:
 
         def interval_intersection(
-            requested_minmax: tuple[Integer, Integer],
+            requested_minmax: tuple[Integer, Integer | float],
             partition_minmax: tuple[Integer, Integer],
         ):
+            """Test to see if the partition intersects with the requested interval."""
+            rmin, rmax = requested_minmax
+            pmin, pmax = partition_minmax
             # False if either is true.
             # Upperbound of first interval is lower than lowerbound of second
             # Lowerbound of second interval is lower than upperbound of first
-            if requested_minmax[0] >= requested_minmax[1]:
+            if not (rmin < rmax):
                 raise ValueError(
-                    f"requested_minmax is reversed or zero length, recieved {requested_minmax}"
+                    f"requested_minmax is {'zero length' if rmin==rmax else 'reversed'}, "
+                    f"recieved {rmin}, and {rmax}."
                 )
-            if partition_minmax[0] > partition_minmax[1] or not (
-                (
-                    requested_minmax[0] < partition_minmax[0]
-                )  # really bad conditional check.
-                and (
-                    partition_minmax[0] < partition_minmax[1]
-                )  # TODO: Refactor and turn into a third guard check.
-                and (partition_minmax[1] < requested_minmax[1])
-            ):
+            if not (pmin < pmax):
                 raise ValueError(
-                    f"partition_minmax is reversed or zero length, recieved {requested_minmax}"
+                    f"partition_minmax is {'zero length' if pmin==pmax else 'reversed'}, "
+                    f"recieved {pmin}, and {pmax}."
                 )
 
-            if (
-                requested_minmax[1] < partition_minmax[0]
-                or partition_minmax[0] < requested_minmax[1]
-            ):
-                return False
-            return True
+            return (rmin < pmax) and (pmin < rmax)
+
+        interval: tuple[Integer, Integer | float] = (min or 0, max or float("inf"))
 
         # Load metadata
         metadata = MetadataFile(metadata_path).read()
         if not metadata:
             raise ValueError(f"No metadata file at path {metadata_path}")
 
-        shard_paths = metadata["shard_paths"]
-        primes = concatenate()
+        collected_primes: list[NumpyIntegerArray] = list()
+        for shard_path in metadata["shard_paths"]:
+            shard_interval = metadata[shard_path]["prime_interval"]
 
-    def reformat_shards(
+            if interval_intersection(interval, shard_interval):
+                shard_file = self._shard_factory(Path(shard_path))
+                collected_primes.append(shard_file.read())
+
+        return unique(concatenate(collected_primes))
+
+    def repartition_shards(
         self,
         target_chunk_count_per_shard: Optional[Integer],
         target_total_shard_count: Optional[Integer],
         target_shard_byte_size: Optional[Integer],
         target_chunk_byte_size: Optional[Integer],
-        overwrite_shards: bool = False,
-        overwrite_metadata: bool = False,
+        overwrite_shards: bool = True,
+        overwrite_metadata: bool = True,
     ) -> None:
-        # This is problematic. Now
-        saved_shards = self.load()
+        if not self.verify_shard_integrity():
+            # TODO: Implement this section
+            raise
+        # Load the saved primes.
+        saved_primes = self.load()
+
+        # Save the loaded primes using the new information provided for
+        # the repartitioning. PartitionStrategy inside ShardManager.save
+        # will take the new parameters and resave the new primes.
         self.save(
-            target_chunk_count_per_shard,
-            target_total_shard_count,
-            target_shard_byte_size,
-            target_chunk_byte_size,
-            overwrite_shards,
-            overwrite_metadata,
+            primes_array=saved_primes,
+            target_total_shard_count=target_total_shard_count,
+            target_chunk_count_per_shard=target_chunk_count_per_shard,
+            target_shard_byte_size=target_shard_byte_size,
+            target_chunk_byte_size=target_chunk_byte_size,
+            overwrite_shards=overwrite_shards,
+            overwrite_metadata=overwrite_metadata,
         )
 
-    def verify(
-        self,
+    def verify_shard_integrity(
+        self, metadata_path: Path | str = _default_metadata_file
     ) -> bool:
         # TODO: Check existing npz shards against files listed in metadata.
         # TODO: Check existing npz shards have right file sizes.
@@ -349,20 +374,19 @@ class ShardManager:
         chunks: list[NumpyIntegerArray],
         shard_path: Path | str,
     ) -> dict[String, Any]:
-
-        min_prime, max_prime = chunks[0][0], chunks[-1][-1]
+        # Cast numpy values to python integers.
+        min_prime, max_prime = int(chunks[0][0]), int(chunks[-1][-1])
 
         shard_metadata = {
-            "min": min_prime,
-            "max": max_prime,
+            "prime_interval": (min_prime, max_prime),
             "shard_index": shard_idx,
             "chunk_count": len(chunks),
         }
 
         chunk_metadata = {
             self._generate_name([chunk[0], chunk[-1]]): {
-                "min": chunk[0],
-                "max": chunk[-1],
+                "min": int(chunk[0]),
+                "max": int(chunk[-1]),
             }
             for chunk in chunks
         }
@@ -370,7 +394,9 @@ class ShardManager:
         return {str(shard_path): shard_metadata | chunk_metadata}
 
     @staticmethod
-    def _generate_name(*args: Any) -> String:
+    def _generate_name(
+        *args: Any,
+    ) -> String:
         """A basic placeholder function"""
         # TODO: Implement name hashing algorithm instead of simple
         # naming schemes.

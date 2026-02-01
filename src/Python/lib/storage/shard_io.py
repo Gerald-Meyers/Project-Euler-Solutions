@@ -1,21 +1,28 @@
+from pathlib import Path
+from typing import Protocol, runtime_checkable
+
 from lib.types import NumpyIntegerArray, String
 from numpy import concatenate, load, savez_compressed, unique
 
-from .pathing import ManagedPath, Path
-
-# TODO: Implement dependency injection to make the sharding system more
-# flexible. The ManagedPath could be a reference to a cloud storage, or
-# active database. The read, write, delete, and validate methods need to
-# be able to interact with that system.
+from .pathing import HashFile
 
 
-class ShardFile(ManagedPath):
+@runtime_checkable
+class ShardStorage(Protocol):
+    def read(self) -> NumpyIntegerArray: ...
+    def write(
+        self, chunk_dict: dict[String, NumpyIntegerArray], overwrite: bool = False
+    ) -> None: ...
+    def delete(self) -> None: ...
+
+
+class ShardFile:
 
     def __init__(
         self,
         path: Path | String,
     ) -> None:
-        super().__init__(path)
+        self.path = Path(path)
 
     def read(
         self,
@@ -60,5 +67,4 @@ class ShardFile(ManagedPath):
             if chunk_array.size == 0:
                 raise ValueError(f"Chunk {chunk_name} is empty.")
             if not chunk_name:
-                raise ValueError(f"Chunk name is empty.")
                 raise ValueError(f"Chunk name is empty.")

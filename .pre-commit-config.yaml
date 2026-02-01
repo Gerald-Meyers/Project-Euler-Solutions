@@ -1,0 +1,25 @@
+repos:
+-   repo: local
+    hooks:
+    -   id: run-tests
+        name: Run Storage Unit Tests
+        # The command to run. 
+        # 1. It sets PYTHONPATH so Python knows where to find your 'lib' module.
+        # 2. It runs the unittest discovery in your tests folder.
+        entry: bash -c 'export PYTHONPATH=$PYTHONPATH:$(pwd)/src/Python && python3 -m unittest discover -s src/Python/tests -p "test_*.py"'
+        
+        # 'system' means it uses the python installed in your current shell/environment,
+        # rather than installing a separate isolated environment for this hook.
+        language: system
+        
+        # This tells pre-commit to run this hook only when python files are involved 
+        # (though 'always_run' overrides this specific logic below).
+        types: [python]
+        
+        # By default, pre-commit passes the list of changed files to the command.
+        # Setting this to false prevents that, because 'unittest discover' finds files on its own.
+        pass_filenames: false
+        
+        # This forces the tests to run on *every* commit, even if you only changed a README.
+        # If you set this to false, it would only run if a file matching 'types: [python]' changed.
+        always_run: true

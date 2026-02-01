@@ -161,7 +161,10 @@
         // C/C++ Extension pack
         "ms-vscode.cpptools-extension-pack",
 
-        "ms-python.debugpy"
+        "ms-python.debugpy",
+        
+        // Mermaid markdown support for planning and logic flow.
+        "bierner.markdown-mermaid"
         
       ]
     }
