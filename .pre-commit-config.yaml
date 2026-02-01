@@ -1,25 +1,68 @@
 repos:
--   repo: local
+# Standard hooks useful for all projects (Language Agnostic)
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
     hooks:
-    -   id: run-tests
-        name: Run Storage Unit Tests
-        # The command to run. 
-        # 1. It sets PYTHONPATH so Python knows where to find your 'lib' module.
-        # 2. It runs the unittest discovery in your tests folder.
-        entry: bash -c 'export PYTHONPATH=$PYTHONPATH:$(pwd)/src/Python && python3 -m unittest discover -s src/Python/tests -p "test_*.py"'
-        
-        # 'system' means it uses the python installed in your current shell/environment,
-        # rather than installing a separate isolated environment for this hook.
-        language: system
-        
-        # This tells pre-commit to run this hook only when python files are involved 
-        # (though 'always_run' overrides this specific logic below).
-        types: [python]
-        
-        # By default, pre-commit passes the list of changed files to the command.
-        # Setting this to false prevents that, because 'unittest discover' finds files on its own.
-        pass_filenames: false
-        
-        # This forces the tests to run on *every* commit, even if you only changed a README.
-        # If you set this to false, it would only run if a file matching 'types: [python]' changed.
-        always_run: true
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-added-large-files
+      - id: check-merge-conflict
+
+  -   repo: local
+      hooks:
+      -   id: run-tests
+          name: Run Storage Unit Tests
+          # The command to run. 
+          # 1. It sets PYTHONPATH so Python knows where to find your 'lib' module.
+          # 2. It runs the unittest discovery in your tests folder.
+          entry: bash -c 'export PYTHONPATH=$PYTHONPATH:$(pwd)/src/Python && python3 -m unittest discover -s src/Python/tests -p "test_*.py"'
+          
+          # 'system' means it uses the python installed in your current shell/environment,
+          # rather than installing a separate isolated environment for this hook.
+          language: system
+          
+          # This tells pre-commit to run this hook only when python files are involved 
+          # (though 'always_run' overrides this specific logic below).
+          types: [python]
+          
+          # By default, pre-commit passes the list of changed files to the command.
+          # Setting this to false prevents that, because 'unittest discover' finds files on its own.
+          pass_filenames: false
+          
+          # This forces the tests to run on *every* commit, even if you only changed a README.
+          # If you set this to false, it would only run if a file matching 'types: [python]' changed.
+          always_run: true
+
+    # hooks: # Uncomment this section to add hooks, then remove this comment.
+      # Template: Generic Test Runner
+      # Modify 'entry' to match your language's test command (e.g., 'npm test', 'cargo test', 'pytest')
+      # - id: run-tests
+      #   name: Run Project Tests
+      #   entry: echo "Configure your test command here"
+      #   language: system
+      #   pass_filenames: false
+      #   # Set to true if tests should run on every commit, false to run only when files change
+      #   always_run: true
+
+      # Template: Linting/Formatting Script
+      # - id: run-linter
+      #   name: Run Linter
+      #   entry: ./scripts/lint.sh
+      #   language: script
+
+      # Python Hook Example
+      # - id: run-python-tests
+      #   name: Run Storage Unit Tests
+      #   entry: bash -c 'export PYTHONPATH=$PYTHONPATH:$(pwd)/src/Python && python3 -m unittest discover -s src/Python/tests -p "test_*.py"'
+      #   language: system
+      #   types: [python]
+      #   pass_filenames: false
+      #   always_run: true
+
+      # C/C++ Hook Example
+      # - id: clang-format
+      #   name: Clang Format
+      #   entry: clang-format -i
+      #   language: system
+      #   types: [c++, c]

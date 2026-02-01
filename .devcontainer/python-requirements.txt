@@ -12,3 +12,5 @@ cython
 setuptools
 wheel
 # isort
+# Git pre-commit hook - https://pre-commit.com/
+pre-commit
