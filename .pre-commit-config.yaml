@@ -1,0 +1,46 @@
+repos:
+  # Standard hooks useful for all projects (Language Agnostic)
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-added-large-files
+      - id: check-merge-conflict
+
+  # Local hooks: Define custom commands to run locally without installing external repos
+  # This section is designed to be modified for specific project needs (Python, Node, Rust, etc.)
+  - repo: local
+    # hooks: # Uncomment this section to add hooks, then remove this comment.
+      # Template: Generic Test Runner
+      # Modify 'entry' to match your language's test command (e.g., 'npm test', 'cargo test', 'pytest')
+      # - id: run-tests
+      #   name: Run Project Tests
+      #   entry: echo "Configure your test command here"
+      #   language: system
+      #   pass_filenames: false
+      #   # Set to true if tests should run on every commit, false to run only when files change
+      #   always_run: true
+
+      # Template: Linting/Formatting Script
+      # - id: run-linter
+      #   name: Run Linter
+      #   entry: ./scripts/lint.sh
+      #   language: script
+
+      # Python Hook Example
+      # - id: run-python-tests
+      #   name: Run Storage Unit Tests
+      #   entry: bash -c 'export PYTHONPATH=$PYTHONPATH:$(pwd)/src/Python && python3 -m unittest discover -s src/Python/tests -p "test_*.py"'
+      #   language: system
+      #   types: [python]
+      #   pass_filenames: false
+      #   always_run: true
+
+      # C/C++ Hook Example
+      # - id: clang-format
+      #   name: Clang Format
+      #   entry: clang-format -i
+      #   language: system
+      #   types: [c++, c]

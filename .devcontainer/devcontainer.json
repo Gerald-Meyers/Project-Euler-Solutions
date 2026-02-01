@@ -85,7 +85,9 @@
   // postCreateCommand: Executes a command/script ONCE.
   // Timing: Runs after the container is created (and after updateContentCommand if present), but before VS Code connects.
   // Use Case: Ideal for general one-time setup tasks like installing global tools, initializing databases, or cloning dependent repositories.
-  "postCreateCommand" : {},
+  "postCreateCommand" : {
+    "Ensure pre-commit is available": "pre-commit install"
+  },
 
   // postStartCommand: Executes a command/script EVERY time the container starts.
   // Timing: Runs after the container boots up (and after postCreateCommand on first start), but before VS Code connects.
@@ -145,7 +147,6 @@
 
         // Red Hat YAML for YAML language support and formatting
         "redhat.vscode-yaml"
-
 
         // Black for Python code formatting as an optional extension
         // "ms-python.black-formatter",
